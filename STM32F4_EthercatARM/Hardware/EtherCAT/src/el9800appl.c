@@ -56,6 +56,7 @@ V4.30 : create file
 #include "Stepper.h"
 #include "string.h"
 #include "Setting.h"
+#include "Home_limit.h"
 extern Ethercat_data_parameter Ethercat_data;
 /*** user define end  **/
 
@@ -154,6 +155,9 @@ UINT16 APPL_StartInputHandler(UINT16 *pIntMask)
 		Stepper_isAutoRun = 0;
 //	__HAL_TIM_ENABLE(&STEP_TIMER);
 	//Ethercat_data.ch.data[0] = settings.robot_id;//先将一个AD通道当作id的输入(测试用)
+  Home_limit_init();//重新初始化下
+	Contol_key_state.enable_key_limit = 0;//如果开始了EtherCAT应用,就失能限位
+	Contol_key_state.mode_ethercat_run = 1;
     return ALSTATUSCODE_NOERROR;
 }
 
@@ -177,6 +181,9 @@ UINT16 APPL_StopInputHandler(void)
 	Stepper_isAutoRun = 0;
 	STEP_SETTING_Obj7000 = 0;//缓冲，否则会自动运行
 //	__HAL_TIM_DISABLE(&STEP_TIMER);//添加只能走一次step中断
+	
+	Contol_key_state.enable_key_limit = 1;
+	Contol_key_state.mode_ethercat_run = 0;
     return ALSTATUSCODE_NOERROR;
 }
 
@@ -465,6 +472,9 @@ void APPL_Application(void)
 			//获取最大步长
 			Stepper_data.step_eventCount = STEP_MAX(Ethercat_data.cmd.step[AXIS_X],Ethercat_data.cmd.step[AXIS_Y]);
 			Stepper_data.step_eventCount = STEP_MAX(Stepper_data.step_eventCount,Ethercat_data.cmd.step[AXIS_Z]);
+			Stepper_data.step_eventCount = STEP_MAX(Stepper_data.step_eventCount,Ethercat_data.cmd.step[AXIS_A]);
+			Stepper_data.step_eventCount = STEP_MAX(Stepper_data.step_eventCount,Ethercat_data.cmd.step[AXIS_B]);
+			Stepper_data.step_eventCount = STEP_MAX(Stepper_data.step_eventCount,Ethercat_data.cmd.step[AXIS_C]);
 			
 			//设置Stepper参数
 			if(Stepper_data.step_eventCount == 1){//正常1/2=0.5,但是整形中1/2=0,此时不会运动

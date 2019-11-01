@@ -32,10 +32,14 @@
 #define SETTINGS_RESTORE_STARTUP_LINES 		BIT(2)
 #define SETTINGS_RESTORE_BUILD_INFO 		BIT(3)
 
-#define DEFAULT_ROBOT_ID 0 //默认的机器人id为0
+#define DEFAULT_ROBOT_ID 0x0 //默认的机器人id为0
+#define DEFAULT_LIMIT_RUN_DIR 0x03 //默认的方向设置为3,也就是XY方向取反
+#define DEFAULT_LIMIT_ENABLE_MASK 0x07 //默认XYZ 3个限位
 
 typedef struct{
    uint8_t robot_id;//机器人的id
+	 uint8_t limit_run_dir;//在自动归位的时候,设置方向
+	 uint8_t limit_enable_mask;//在自动归位的时候,要使能的限位
 }Settings_t;
 
 extern Settings_t settings;

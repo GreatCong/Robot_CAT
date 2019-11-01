@@ -3,6 +3,8 @@
 #include "tim.h"
 #include <string.h>
 
+#include "Home_limit.h"
+
 //  @ fuction:  Stepper_Enable
 //  @ description:  
 //  @ input:
@@ -106,6 +108,11 @@ void Stepper_MainISR(void)
 		return;
 	}
 	
+	uint8_t key_limitState_temp = Contol_key_state.key_limit_state;
+	if(Contol_key_state.enable_key_limit == 0){//如果没有使能限位
+	   key_limitState_temp = 0;
+	}
+	
 	__HAL_TIM_SET_AUTORELOAD(&STEP_TIMER,Step_TimerCount);//0.02ms 最大接收50个脉冲
 	__HAL_TIM_SET_COMPARE(&STEP_TIMER,STEP_TIMER_CHANNEL,(uint32_t)(Step_TimerCount * 0.75));
 	
@@ -116,7 +123,9 @@ void Stepper_MainISR(void)
 	// Execute step displacement profile by Bresenham line algorithm
 	Stepper_data.step_counter[AXIS_X] += Stepper_data.steps[AXIS_X];	
 	if(Stepper_data.step_counter[AXIS_X] > Stepper_data.step_eventCount){
-	   Stepper_data.step_outbits |= (1<<AXIS_X);
+		if(!(key_limitState_temp & (1 << LIMIT_X))){//如果没有限位,就运动
+		   Stepper_data.step_outbits |= (1<<AXIS_X);
+		}
 		Stepper_data.step_counter[AXIS_X] -= Stepper_data.step_eventCount;
 		if(Stepper_data.dir_outbits &(1<<AXIS_X)){
 		  Sys_position[AXIS_X]--;
@@ -129,7 +138,9 @@ void Stepper_MainISR(void)
 	// Execute step displacement profile by Bresenham line algorithm
 	Stepper_data.step_counter[AXIS_Y] += Stepper_data.steps[AXIS_Y];	
 	if(Stepper_data.step_counter[AXIS_Y] > Stepper_data.step_eventCount){
-	   Stepper_data.step_outbits |= (1<<AXIS_Y);
+		if(!(key_limitState_temp & (1 << LIMIT_Y))){//如果没有限位,就运动
+		   Stepper_data.step_outbits |= (1<<AXIS_Y);
+		}
 		Stepper_data.step_counter[AXIS_Y] -= Stepper_data.step_eventCount;
 		if(Stepper_data.dir_outbits &(1<<AXIS_Y)){
 		  Sys_position[AXIS_Y]--;
@@ -142,7 +153,9 @@ void Stepper_MainISR(void)
 	// Execute step displacement profile by Bresenham line algorithm
 	Stepper_data.step_counter[AXIS_Z] += Stepper_data.steps[AXIS_Z];	
 	if(Stepper_data.step_counter[AXIS_Z] > Stepper_data.step_eventCount){
-	   Stepper_data.step_outbits |= (1<<AXIS_Z);
+		if(!(key_limitState_temp & (1 << LIMIT_Z))){//如果没有限位,就运动
+		   Stepper_data.step_outbits |= (1<<AXIS_Z);
+		}
 		Stepper_data.step_counter[AXIS_Z] -= Stepper_data.step_eventCount;
 		if(Stepper_data.dir_outbits &(1<<AXIS_Z)){
 		  Sys_position[AXIS_Z]--;
@@ -155,7 +168,9 @@ void Stepper_MainISR(void)
 	// Execute step displacement profile by Bresenham line algorithm
 	Stepper_data.step_counter[AXIS_A] += Stepper_data.steps[AXIS_A];	
 	if(Stepper_data.step_counter[AXIS_A] > Stepper_data.step_eventCount){
-	   Stepper_data.step_outbits |= (1<<AXIS_A);
+		if(!(key_limitState_temp & (1 << LIMIT_A))){//如果没有限位,就运动
+		   Stepper_data.step_outbits |= (1<<AXIS_A);
+		}
 		Stepper_data.step_counter[AXIS_A] -= Stepper_data.step_eventCount;
 		if(Stepper_data.dir_outbits &(1<<AXIS_A)){
 		  Sys_position[AXIS_A]--;
@@ -168,7 +183,9 @@ void Stepper_MainISR(void)
 	// Execute step displacement profile by Bresenham line algorithm
 	Stepper_data.step_counter[AXIS_B] += Stepper_data.steps[AXIS_B];	
 	if(Stepper_data.step_counter[AXIS_B] > Stepper_data.step_eventCount){
-	   Stepper_data.step_outbits |= (1<<AXIS_B);
+		if(!(key_limitState_temp & (1 << LIMIT_B))){//如果没有限位,就运动
+		   Stepper_data.step_outbits |= (1<<AXIS_B);
+		}
 		Stepper_data.step_counter[AXIS_B] -= Stepper_data.step_eventCount;
 		if(Stepper_data.dir_outbits &(1<<AXIS_B)){
 		  Sys_position[AXIS_B]--;
@@ -181,7 +198,9 @@ void Stepper_MainISR(void)
 	// Execute step displacement profile by Bresenham line algorithm
 	Stepper_data.step_counter[AXIS_C] += Stepper_data.steps[AXIS_C];	
 	if(Stepper_data.step_counter[AXIS_C] > Stepper_data.step_eventCount){
-	   Stepper_data.step_outbits |= (1<<AXIS_C);
+		if(!(key_limitState_temp & (1 << LIMIT_C))){//如果没有限位,就运动
+		   Stepper_data.step_outbits |= (1<<AXIS_C);
+		}
 		Stepper_data.step_counter[AXIS_C] -= Stepper_data.step_eventCount;
 		if(Stepper_data.dir_outbits &(1<<AXIS_C)){
 		  Sys_position[AXIS_C]--;
@@ -278,4 +297,47 @@ void TIM4_IRQHandler(void){
 		}
 	}
 	
+}
+
+
+//  @ fuction:  
+//  @ description: 单独设定stepper的参数
+//  @ input:
+//  @ output:
+//  @ note: 
+void Stepper_setParam(Stepper_t stepper_param,uint32_t stepper_fre){
+	memset(&Stepper_data,0,sizeof(Stepper_data));
+	//获取最大步长
+	Stepper_data.step_eventCount = STEP_MAX(stepper_param.steps[AXIS_X],stepper_param.steps[AXIS_Y]);
+	Stepper_data.step_eventCount = STEP_MAX(Stepper_data.step_eventCount,stepper_param.steps[AXIS_Z]);
+	Stepper_data.step_eventCount = STEP_MAX(Stepper_data.step_eventCount,stepper_param.steps[AXIS_A]);
+	Stepper_data.step_eventCount = STEP_MAX(Stepper_data.step_eventCount,stepper_param.steps[AXIS_B]);
+	Stepper_data.step_eventCount = STEP_MAX(Stepper_data.step_eventCount,stepper_param.steps[AXIS_C]);
+			
+	//设置Stepper参数
+	if(Stepper_data.step_eventCount == 1){//正常1/2=0.5,但是整形中1/2=0,此时不会运动
+		Stepper_data.step_counter[AXIS_X] = Stepper_data.step_counter[AXIS_Y] = Stepper_data.step_counter[AXIS_Z] = 1;
+		Stepper_data.step_counter[AXIS_A] = Stepper_data.step_counter[AXIS_B] = Stepper_data.step_counter[AXIS_C] = 1;
+	}
+	else{
+		 Stepper_data.step_counter[AXIS_X] = Stepper_data.step_counter[AXIS_Y] = Stepper_data.step_counter[AXIS_Z] = (Stepper_data.step_eventCount >> 1);
+		 Stepper_data.step_counter[AXIS_A] = Stepper_data.step_counter[AXIS_B] = Stepper_data.step_counter[AXIS_C] = (Stepper_data.step_eventCount >> 1);
+	}
+	Stepper_data.step_count = Stepper_data.step_eventCount;//设置结束标志
+	//步长
+	Stepper_data.steps[AXIS_X] = stepper_param.steps[AXIS_X];
+	Stepper_data.steps[AXIS_Y] = stepper_param.steps[AXIS_Y];
+	Stepper_data.steps[AXIS_Z] = stepper_param.steps[AXIS_Z];
+	Stepper_data.steps[AXIS_A] = stepper_param.steps[AXIS_A];
+	Stepper_data.steps[AXIS_B] = stepper_param.steps[AXIS_B];
+	Stepper_data.steps[AXIS_C] = stepper_param.steps[AXIS_C];
+	
+	Stepper_data.dir_outbits = stepper_param.dir_outbits;
+	//设置脉冲延时
+	Step_TimerCount = (uint32_t)(F_TIMER_STEPPER / stepper_fre);
+	if(stepper_fre > MAX_STEP_RATE_HZ){
+			Step_TimerCount = STEP_TIMER_MIN;//防止太快出现尖锐的响声
+	}
+
+		__HAL_TIM_ENABLE(&STEP_TIMER);
 }

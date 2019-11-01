@@ -56,6 +56,7 @@
 #include "Stepper.h"
 #include "protocol.h"
 #include "Setting.h"
+#include "Home_limit.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -140,6 +141,8 @@ int main(void)
 	Stepper_Enable(false);//暂时不使能
 	Stepper_Timer_init();
 	
+	Home_limit_init();
+
 //	MotorTools_init();
 //	MotorTools_ResetPWM();
 	//MotorTools_setPWM(2000);
@@ -150,12 +153,15 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    MainLoop();
+		MainLoop();
 		LED_Twinkle();//indication of normal state of program
 		if(Is_setting_to_flash){//配置信息持久化存储
 		  WriteGlobalSettings();
 			Is_setting_to_flash = false;
 		}
+		
+		//HAL_Delay(10);
+		
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */

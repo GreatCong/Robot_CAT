@@ -787,6 +787,11 @@
               <FileType>1</FileType>
               <FilePath>..\Hardware\global\Setting.c</FilePath>
             </File>
+            <File>
+              <FileName>Home_limit.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Hardware\global\Home_limit.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

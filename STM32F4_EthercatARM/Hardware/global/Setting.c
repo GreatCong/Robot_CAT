@@ -64,7 +64,9 @@ void WriteGlobalSettings(void)
 void Settings_Restore(uint8_t restore_flag) {
 	if(restore_flag & SETTINGS_RESTORE_DEFAULTS) {
 		settings.robot_id = DEFAULT_ROBOT_ID;//Ð´Èë»úÆ÷ÈËID
-
+    settings.limit_run_dir = DEFAULT_LIMIT_RUN_DIR;
+		settings.limit_enable_mask = DEFAULT_LIMIT_ENABLE_MASK;
+		
 		WriteGlobalSettings();
 	}
 }

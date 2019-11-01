@@ -67,4 +67,6 @@ void Stepper_ControlDir(uint8_t motor_num,Dir_State_enum dir_state);
 void Stepper_Timer_init(void);
 void Stepper_PortResetISR(void);
 
+void Stepper_setParam(Stepper_t stepper_param,uint32_t stepper_fre);
+
 #endif

@@ -75,14 +75,18 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 #define PACKAGE_TAIL 0xaa
 
 #define VERSION_MAJOR 2 //主版本号
-#define VERSION_MINOR 1 //子版本号
+#define VERSION_MINOR 2 //子版本号
 
 typedef enum{
 	CMD_NULL = 0x7f,
   CMD_GET_ID,//0x80
 	CMD_SET_ID,//0x81
 	CMD_WR_FLASH, //0x82
-	CMD_GET_VERSION //0x83
+	CMD_GET_VERSION, //0x83
+	CMD_GET_LIMIT_RUN_DIR,//0x84
+	CMD_SET_LIMIT_RUN_DIR,//0x85
+	CMD_GET_LIMIT_ENABLE_MASK,//0x86
+	CMD_SET_LIMIT_ENABLE_MASK//0x87
 }CMD_TYPE_E;
 
 uint8_t Uart_data_rsv = 0;//串口接收的数据
@@ -151,11 +155,27 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 				if(Cmd_state == CMD_STATE_HEAD){
 				   Cmd_type = c;
 					 Cmd_state = CMD_STATE_PROCESS;
-					if(Cmd_type == CMD_GET_ID){
-					   Usart_putc(PACKAGE_HEAD);
-						 Usart_putc(CMD_GET_ID);
-						 Usart_putc(settings.robot_id);
-						 Usart_putc(PACKAGE_TAIL);
+					switch(Cmd_type){
+						case CMD_GET_ID:
+							Usart_putc(PACKAGE_HEAD);
+						  Usart_putc(CMD_GET_ID);
+						  Usart_putc(settings.robot_id);
+						  Usart_putc(PACKAGE_TAIL);
+							break;
+						case CMD_GET_LIMIT_RUN_DIR:
+							Usart_putc(PACKAGE_HEAD);
+						  Usart_putc(CMD_GET_LIMIT_RUN_DIR);
+						  Usart_putc(settings.limit_run_dir);
+						  Usart_putc(PACKAGE_TAIL);
+							break;
+						case CMD_GET_LIMIT_ENABLE_MASK:
+							Usart_putc(PACKAGE_HEAD);
+						  Usart_putc(CMD_GET_LIMIT_ENABLE_MASK);
+						  Usart_putc(settings.limit_enable_mask);
+						  Usart_putc(PACKAGE_TAIL);
+							break;
+						default:
+							break;
 					}
 				}
 				else{
@@ -163,6 +183,12 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 						case CMD_SET_ID://获取机器人ID
 							settings.robot_id = c;
 							break;
+						case CMD_SET_LIMIT_RUN_DIR://获取限位运动的方向
+							settings.limit_run_dir = c;
+							break;
+						case CMD_SET_LIMIT_ENABLE_MASK:
+							settings.limit_enable_mask = c;
+						 break;
 						default:
 							break;
 					}
@@ -173,4 +199,3 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 		HAL_UART_Receive_IT(&STDOUT,&Uart_data_rsv,1);//重新开启串口中断
 	}
 }
-
