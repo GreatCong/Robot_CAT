@@ -2,6 +2,7 @@
 #define __HOME_LIMIT_H_
 
 #include <stdint.h>
+#include <stdbool.h>
 
 #define CONTROL_RESET_BIT			0
 #define CONTROL_FEED_HOLD_BIT		1
@@ -33,9 +34,11 @@ typedef struct{
 	uint8_t enable_key_limit;
 	uint8_t enable_key_press;
 	uint8_t mode_ethercat_run;
+	uint8_t mode_mpu6050;
 }Control_Key_t;
 
 extern Control_Key_t Contol_key_state;
+extern bool Is_ethercat_init;
 
 extern void Home_limit_init(void);
 extern uint8_t Limits_GetState(void);

@@ -18,7 +18,7 @@
 		</Groups>
 		<Devices>
 			<Device Physics="YY">
-				<Type ProductCode="#x00000101" RevisionNo="#x00000003">DRE_ROBOT_6AXIS</Type>
+				<Type ProductCode="#x00000101" RevisionNo="#x00000006">DRE_ROBOT_6AXIS</Type>
 				<Name LcId="1033">DRE_ROBOT_6AXIS</Name>
 				<Name LcId="1031">DRE_ROBOT_6AXIS</Name>
 				<Info>
@@ -1933,6 +1933,16 @@
 							</Object>
 							<Object>
 								<Index>#x6000</Index>
+								<Name>MOTOR_COUNT</Name>
+								<Type>IDNT</Type>
+								<BitSize>32</BitSize>
+								<Flags>
+									<Access>ro</Access>
+									<Category>o</Category>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x6010</Index>
 								<Name>MOTOR_MESSAGE</Name>
 								<Type>INT</Type>
 								<BitSize>16</BitSize>
@@ -1942,7 +1952,7 @@
 								</Flags>
 							</Object>
 							<Object>
-								<Index>#x6010</Index>
+								<Index>#x6020</Index>
 								<Name>ERROR_MSG</Name>
 								<Type>INT</Type>
 								<BitSize>16</BitSize>
@@ -1952,7 +1962,27 @@
 								</Flags>
 							</Object>
 							<Object>
-								<Index>#x6020</Index>
+								<Index>#x6030</Index>
+								<Name>MACHINE_PARAM</Name>
+								<Type>INT</Type>
+								<BitSize>16</BitSize>
+								<Flags>
+									<Access>ro</Access>
+									<Category>o</Category>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x6040</Index>
+								<Name>LIMIT_STATE</Name>
+								<Type>INT</Type>
+								<BitSize>16</BitSize>
+								<Flags>
+									<Access>ro</Access>
+									<Category>o</Category>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x6050</Index>
 								<Name>AI_CH1</Name>
 								<Type>INT</Type>
 								<BitSize>16</BitSize>
@@ -1962,7 +1992,7 @@
 								</Flags>
 							</Object>
 							<Object>
-								<Index>#x6030</Index>
+								<Index>#x6060</Index>
 								<Name>AI_CH2</Name>
 								<Type>INT</Type>
 								<BitSize>16</BitSize>
@@ -1972,8 +2002,18 @@
 								</Flags>
 							</Object>
 							<Object>
+								<Index>#x6070</Index>
+								<Name>AI_CH3</Name>
+								<Type>INT</Type>
+								<BitSize>16</BitSize>
+								<Flags>
+									<Access>ro</Access>
+									<Category>o</Category>
+								</Flags>
+							</Object>
+							<Object>
 								<Index>#x7000</Index>
-								<Name>STEP_SETTING</Name>
+								<Name>IO_OUTPUT</Name>
 								<Type>UINT</Type>
 								<BitSize>16</BitSize>
 								<Flags>
@@ -1983,7 +2023,7 @@
 							</Object>
 							<Object>
 								<Index>#x7010</Index>
-								<Name>STEP_FRE</Name>
+								<Name>STEP_SETTING</Name>
 								<Type>UINT</Type>
 								<BitSize>16</BitSize>
 								<Flags>
@@ -1993,7 +2033,7 @@
 							</Object>
 							<Object>
 								<Index>#x7020</Index>
-								<Name>MOTOR_DIR</Name>
+								<Name>STEP_FRE</Name>
 								<Type>UINT</Type>
 								<BitSize>16</BitSize>
 								<Flags>
@@ -2003,6 +2043,16 @@
 							</Object>
 							<Object>
 								<Index>#x7030</Index>
+								<Name>MOTOR_DIR</Name>
+								<Type>UINT</Type>
+								<BitSize>16</BitSize>
+								<Flags>
+									<Access>ro</Access>
+									<Category>o</Category>
+								</Flags>
+							</Object>
+							<Object>
+								<Index>#x7040</Index>
 								<Name>MOTOR1_STEP</Name>
 								<Type>UDINT</Type>
 								<BitSize>32</BitSize>
@@ -2012,7 +2062,7 @@
 								</Flags>
 							</Object>
 							<Object>
-								<Index>#x7040</Index>
+								<Index>#x7050</Index>
 								<Name>MOTOR2_STEP</Name>
 								<Type>UDINT</Type>
 								<BitSize>32</BitSize>
@@ -2022,7 +2072,7 @@
 								</Flags>
 							</Object>
 							<Object>
-								<Index>#x7050</Index>
+								<Index>#x7060</Index>
 								<Name>MOTOR3_STEP</Name>
 								<Type>UDINT</Type>
 								<BitSize>32</BitSize>
@@ -2032,7 +2082,7 @@
 								</Flags>
 							</Object>
 							<Object>
-								<Index>#x7060</Index>
+								<Index>#x7070</Index>
 								<Name>MOTOR4_STEP</Name>
 								<Type>UDINT</Type>
 								<BitSize>32</BitSize>
@@ -2042,7 +2092,7 @@
 								</Flags>
 							</Object>
 							<Object>
-								<Index>#x7070</Index>
+								<Index>#x7080</Index>
 								<Name>MOTOR5_STEP</Name>
 								<Type>UDINT</Type>
 								<BitSize>32</BitSize>
@@ -2052,7 +2102,7 @@
 								</Flags>
 							</Object>
 							<Object>
-								<Index>#x7080</Index>
+								<Index>#x7090</Index>
 								<Name>MOTOR6_STEP</Name>
 								<Type>UDINT</Type>
 								<BitSize>32</BitSize>
@@ -2062,7 +2112,7 @@
 								</Flags>
 							</Object>
 							<Object>
-								<Index>#x7090</Index>
+								<Index>#x70a0</Index>
 								<Name>MOTOR7_STEP</Name>
 								<Type>UDINT</Type>
 								<BitSize>32</BitSize>
@@ -2154,67 +2204,74 @@
 						<Index>#x7000</Index>
 						<SubIndex>0</SubIndex>
 						<BitLen>16</BitLen>
-						<Name>STEP_SETTING</Name>
+						<Name>IO_OUTPUT</Name>
 						<DataType>UINT</DataType>
 					</Entry>
 					<Entry>
 						<Index>#x7010</Index>
 						<SubIndex>0</SubIndex>
 						<BitLen>16</BitLen>
-						<Name>STEP_FRE</Name>
+						<Name>STEP_SETTING</Name>
 						<DataType>UINT</DataType>
 					</Entry>
 					<Entry>
 						<Index>#x7020</Index>
 						<SubIndex>0</SubIndex>
 						<BitLen>16</BitLen>
-						<Name>MOTOR_DIR</Name>
+						<Name>STEP_FRE</Name>
 						<DataType>UINT</DataType>
 					</Entry>
 					<Entry>
 						<Index>#x7030</Index>
+						<SubIndex>0</SubIndex>
+						<BitLen>16</BitLen>
+						<Name>MOTOR_DIR</Name>
+						<DataType>UINT</DataType>
+					</Entry>
+					<Entry>
+						<Index>#x7040</Index>
 						<SubIndex>0</SubIndex>
 						<BitLen>32</BitLen>
 						<Name>MOTOR1_STEP</Name>
 						<DataType>UDINT</DataType>
 					</Entry>
 					<Entry>
-						<Index>#x7040</Index>
+						<Index>#x7050</Index>
 						<SubIndex>0</SubIndex>
 						<BitLen>32</BitLen>
 						<Name>MOTOR2_STEP</Name>
 						<DataType>UDINT</DataType>
 					</Entry>
 					<Entry>
-						<Index>#x7050</Index>
+						<Index>#x7060</Index>
 						<SubIndex>0</SubIndex>
 						<BitLen>32</BitLen>
 						<Name>MOTOR3_STEP</Name>
 						<DataType>UDINT</DataType>
 					</Entry>
 					<Entry>
-						<Index>#x7060</Index>
+						<Index>#x7070</Index>
 						<SubIndex>0</SubIndex>
 						<BitLen>32</BitLen>
 						<Name>MOTOR4_STEP</Name>
 						<DataType>UDINT</DataType>
 					</Entry>
 					<Entry>
-						<Index>#x7070</Index>
+						<Index>#x7080</Index>
 						<SubIndex>0</SubIndex>
 						<BitLen>32</BitLen>
 						<Name>MOTOR5_STEP</Name>
 						<DataType>UDINT</DataType>
 					</Entry>
 					<Entry>
-						<Index>#x7080</Index>
+						<Index>#x7090</Index>
 						<SubIndex>0</SubIndex>
 						<BitLen>32</BitLen>
 						<Name>MOTOR6_STEP</Name>
 						<DataType>UDINT</DataType>
 					</Entry>
 					<Entry>
-						<Index>#x7090</Index>
+						<Index>#x70a0</Index>
 						<SubIndex>0</SubIndex>
 						<BitLen>32</BitLen>
 						<Name>MOTOR7_STEP</Name>
@@ -2227,29 +2284,57 @@
 					<Entry>
 						<Index>#x6000</Index>
 						<SubIndex>0</SubIndex>
-						<BitLen>16</BitLen>
-						<Name>MOTOR_MESSAGE</Name>
-						<DataType>INT</DataType>
+						<BitLen>32</BitLen>
+						<Name>MOTOR_COUNT</Name>
+						<DataType>UDINT</DataType>
 					</Entry>
 					<Entry>
 						<Index>#x6010</Index>
 						<SubIndex>0</SubIndex>
 						<BitLen>16</BitLen>
-						<Name>ERROR_MSG</Name>
+						<Name>MOTOR_MESSAGE</Name>
 						<DataType>INT</DataType>
 					</Entry>
 					<Entry>
 						<Index>#x6020</Index>
 						<SubIndex>0</SubIndex>
 						<BitLen>16</BitLen>
-						<Name>AI_CH3</Name>
+						<Name>ERROR_MSG</Name>
 						<DataType>INT</DataType>
 					</Entry>
 					<Entry>
 						<Index>#x6030</Index>
 						<SubIndex>0</SubIndex>
 						<BitLen>16</BitLen>
-						<Name>AI_CH4</Name>
+						<Name>MACHINE_PARAM</Name>
+						<DataType>INT</DataType>
+					</Entry>
+					<Entry>
+						<Index>#x6040</Index>
+						<SubIndex>0</SubIndex>
+						<BitLen>16</BitLen>
+						<Name>LIMIT_STATE</Name>
+						<DataType>INT</DataType>
+					</Entry>
+					<Entry>
+						<Index>#x6050</Index>
+						<SubIndex>0</SubIndex>
+						<BitLen>16</BitLen>
+						<Name>AI_CH1</Name>
+						<DataType>INT</DataType>
+					</Entry>
+					<Entry>
+						<Index>#x6060</Index>
+						<SubIndex>0</SubIndex>
+						<BitLen>16</BitLen>
+						<Name>AI_CH2</Name>
+						<DataType>INT</DataType>
+					</Entry>
+					<Entry>
+						<Index>#x6070</Index>
+						<SubIndex>0</SubIndex>
+						<BitLen>16</BitLen>
+						<Name>AI_CH3</Name>
 						<DataType>INT</DataType>
 					</Entry>
 				</TxPdo>

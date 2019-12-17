@@ -50,3 +50,35 @@ void MotorTools_ResetPWM(void){
    MOTOR_TOOL_TIMER.Instance->CCR1 = 0;
 //	HAL_TIM_PWM_Stop(&MOTOR_TOOL_TIMER,MOTOR_TOOL_TIMER_CHANNEL);
 }
+
+//  @ fuction:  
+//  @ description:  
+//  @ input:
+//  @ output:
+//  @ note: 
+void IO_DeviceTools_init(void){
+	IO_DeviceTools_Reset();
+}
+
+//  @ fuction:  
+//  @ description:  设置IO设备的值
+//  @ input:
+//  @ output:
+//  @ note: 
+void IO_DeviceTools_setData(uint16_t data){
+   if(data & (1<<0)){
+		   HAL_GPIO_WritePin(GPIO_SPINDLE_ENA_GPIO_Port,GPIO_SPINDLE_ENA_Pin,GPIO_PIN_SET);	  
+		}
+		else{
+		   HAL_GPIO_WritePin(GPIO_SPINDLE_ENA_GPIO_Port,GPIO_SPINDLE_ENA_Pin,GPIO_PIN_RESET);
+		}
+}
+
+//  @ fuction:  
+//  @ description: 复位IO设备的值
+//  @ input:
+//  @ output:
+//  @ note: 
+void IO_DeviceTools_Reset(void){
+   HAL_GPIO_WritePin(GPIO_SPINDLE_ENA_GPIO_Port,GPIO_SPINDLE_ENA_Pin,GPIO_PIN_RESET);
+}

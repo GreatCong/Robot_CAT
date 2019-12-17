@@ -91,8 +91,9 @@ void Stepper_Timer_init(void){
   HAL_TIM_OC_Start_IT(&STEP_TIMER,STEP_TIMER_CHANNEL);//开启输出比较中断
 	__HAL_TIM_ENABLE_IT(&STEP_TIMER, TIM_IT_UPDATE);//开启溢出中断
 	__HAL_TIM_DISABLE(&STEP_TIMER);
-//	__HAL_TIM_SET_COUNTER(&htim4,0);
-	
+	__HAL_TIM_SET_COUNTER(&STEP_TIMER,0);
+	__HAL_TIM_SET_AUTORELOAD(&STEP_TIMER,STEP_TIMER_TEST);//初始值给1kHz
+	__HAL_TIM_SET_COMPARE(&STEP_TIMER,STEP_TIMER_CHANNEL,(uint16_t)(STEP_TIMER_TEST * 3/4));//计数值是16位 系数0.75
 }
 
 
@@ -100,6 +101,7 @@ void Stepper_Timer_init(void){
 Stepper_t Stepper_data;
 int32_t Sys_position[AXIS_N];
 uint8_t Stepper_isAutoRun = 0;
+uint8_t Stepper_isWaitLimit = 0;
 uint32_t Step_TimerCount = STEP_TIMER_TEST;//默认1000Hz
 
 void Stepper_MainISR(void)
@@ -113,8 +115,8 @@ void Stepper_MainISR(void)
 	   key_limitState_temp = 0;
 	}
 	
-	__HAL_TIM_SET_AUTORELOAD(&STEP_TIMER,Step_TimerCount);//0.02ms 最大接收50个脉冲
-	__HAL_TIM_SET_COMPARE(&STEP_TIMER,STEP_TIMER_CHANNEL,(uint32_t)(Step_TimerCount * 0.75));
+	__HAL_TIM_SET_AUTORELOAD(&STEP_TIMER,Step_TimerCount);//0.02ms 最大接收50个脉冲 
+	__HAL_TIM_SET_COMPARE(&STEP_TIMER,STEP_TIMER_CHANNEL,(uint16_t)(Step_TimerCount * 3/4));//计数值是16位 系数0.75
 	
 //		printf("Stepper_MainISR\r\n");
 	// Reset step out bits.

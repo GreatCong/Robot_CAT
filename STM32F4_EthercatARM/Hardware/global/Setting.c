@@ -66,6 +66,11 @@ void Settings_Restore(uint8_t restore_flag) {
 		settings.robot_id = DEFAULT_ROBOT_ID;//Ð´Èë»úÆ÷ÈËID
     settings.limit_run_dir = DEFAULT_LIMIT_RUN_DIR;
 		settings.limit_enable_mask = DEFAULT_LIMIT_ENABLE_MASK;
+		settings.limit_mode = DEFAULT_LIMIT_MODE;
+		settings.limit_goHome_speed = DEFAULT_LIMIT_GOHOME_SPEED;
+		settings.limit_angle[0] = DEFAULT_LIMIT_ANGLE_X;
+		settings.limit_angle[1] = DEFAULT_LIMIT_ANGLE_Y;
+		settings.limit_angle[2] = DEFAULT_LIMIT_ANGLE_Z;
 		
 		WriteGlobalSettings();
 	}

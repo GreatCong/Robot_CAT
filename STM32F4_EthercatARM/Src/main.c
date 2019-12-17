@@ -40,6 +40,7 @@
 #include "main.h"
 #include "stm32f4xx_hal.h"
 #include "i2c.h"
+#include "iwdg.h"
 #include "spi.h"
 #include "tim.h"
 #include "usart.h"
@@ -57,6 +58,9 @@
 #include "protocol.h"
 #include "Setting.h"
 #include "Home_limit.h"
+#include "MPU6050_handle.h"
+
+#define USE_ETHERCAT 1 //是否用EtherCAT通信
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -127,22 +131,27 @@ int main(void)
   /* USER CODE BEGIN 2 */
 	MotorTools_init();//由于PWM引脚设置的是上拉，所以需要在boot之前对电机进行初始化
 	MotorTools_ResetPWM();
+	IO_DeviceTools_init();
 	
 	Settings_Init();//初始化配置(flash)
 	
 	Boot_State(4,500);//boot
 	Usart_Init(&STDOUT,115200);//设置串口的波特率
   //HAL_Delay(10);
+	#if USE_ETHERCAT
   //ECAT初始化
 	HW_Init();//Ethercat硬件初始化中的校验会阻塞
 	MainInit();
 	APPL_GenerateMapping(&nPdInputSize,&nPdOutputSize);
 	bRunApplication = TRUE;
+	#endif
 	Stepper_Enable(false);//暂时不使能
 	Stepper_Timer_init();
 	
 	Home_limit_init();
-
+	Angle_Limit_init();
+	
+	Is_ethercat_init = true;
 //	MotorTools_init();
 //	MotorTools_ResetPWM();
 	//MotorTools_setPWM(2000);
@@ -151,17 +160,30 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+	//MX_IWDG_Init(); //开启独立看门狗
+	My_IWDG_SetReloadData(2000);//开启看门狗2s
   while (1)
   {
+		#if USE_ETHERCAT
 		MainLoop();
-		LED_Twinkle();//indication of normal state of program
-		if(Is_setting_to_flash){//配置信息持久化存储
+		#endif
+		HAL_IWDG_Refresh(&hiwdg);//喂狗(1000ms周期)
+		LED_Twinkle();//indication of normal state of program 改到中断中(改到中断中有些问题??)
+		
+		if(Is_setting_to_flash){//配置信息持久化存储(写入信息过长会触发看门狗)
+			My_IWDG_SetReloadData(4000);//将看门狗延迟到4s
 		  WriteGlobalSettings();
-			Is_setting_to_flash = false;
+			Is_setting_to_flash = false;		
+			My_IWDG_SetReloadData(2000);//恢复2s的看门狗
 		}
 		
-		//HAL_Delay(10);
+		if(Contol_key_state.mode_ethercat_run == 0){
+		   MPU6050_limit_handle();
+		}
 		
+		
+		//printf("limit=%d\n",Contol_key_state.key_limit_state);
+		//HAL_Delay(10);
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
@@ -190,8 +212,9 @@ void SystemClock_Config(void)
 
     /**Initializes the CPU, AHB and APB busses clocks 
     */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_LSI|RCC_OSCILLATORTYPE_HSE;
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
+  RCC_OscInitStruct.LSIState = RCC_LSI_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
   RCC_OscInitStruct.PLL.PLLM = 4;

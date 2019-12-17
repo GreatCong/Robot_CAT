@@ -6,6 +6,7 @@
 #include <string.h>
 
 Control_Key_t Contol_key_state;
+bool Is_ethercat_init = false;
 
 //  @ fuction:  
 //  @ description: 滴答定时器回调 
@@ -13,6 +14,15 @@ Control_Key_t Contol_key_state;
 //  @ output:
 //  @ note: 
 void HAL_SYSTICK_Callback(void){
+//	static int tick_num;
+//	if(tick_num == 60){ //指示灯闪烁
+//	   	HAL_GPIO_TogglePin(LED_STATE_GPIO_Port,LED_STATE_Pin);
+//		  tick_num  = 0;
+//	}
+//	if(Is_ethercat_init){
+//	   tick_num++;
+//	}
+	
 	
 	uint8_t limits = Limits_GetState();
 	Limit_PinChangeISR(limits);
@@ -65,7 +75,20 @@ void Home_limit_init(void){
 	                                          (1<<CONTROL_CYCLE_START_BIT) | (1<<CONTROL_SAFETY_DOOR_BIT);
 	
 	  Contol_key_state.enable_key_limit = 1;
-	  Contol_key_state.enable_key_press = 1;	
+	  Contol_key_state.enable_key_press = 1;
+    
+	  //设置限位的模式
+	  switch(settings.limit_mode){
+			case 0:
+				Contol_key_state.mode_mpu6050	= 0;
+				break;
+			case 1:
+				Contol_key_state.mode_mpu6050	= 1;//会禁用限位开关
+				break;
+			default:
+				Contol_key_state.mode_mpu6050	= 0;
+				break;
+		}
 }
 
 //  @ fuction:  
@@ -136,7 +159,9 @@ uint8_t System_GetControlState(void) {
 //  @ output:
 //  @ note: 
 void Limit_PinChangeISR(uint8_t state){
-  Contol_key_state.key_limit_state = state;//获取限位开关的状态
+	if(Contol_key_state.mode_mpu6050 == 0){
+	   Contol_key_state.key_limit_state = state;//获取限位开关的状态
+	} 
 }
 
 //  @ fuction:  
@@ -163,6 +188,9 @@ void System_LoopHandler(void){
 				   GoHome();
 				 }				 
 			     
+			 }
+			 else if(Contol_key_state.key_press_state & (1<<CONTROL_SAFETY_DOOR_BIT)){//第4个按键用于MPU6050的debug
+				  
 			 }
 			 else{
 			    //其他按键暂时屏蔽掉
@@ -208,10 +236,10 @@ void GoHome(void){
 		 
 			stepper_param.dir_outbits = settings.limit_run_dir;//X,Y方向取反0x3
 		 
-			Stepper_setParam(stepper_param,1500);//姑且设定速度为1500
+			Stepper_setParam(stepper_param,settings.limit_goHome_speed);//姑且设定速度为1500
 			Stepper_Enable(true);//使能电机
 			Contol_key_state.enable_key_limit = 1;
-		 HAL_GPIO_TogglePin(LED_BOOT_GPIO_Port,LED_BOOT_Pin);
+		 //HAL_GPIO_TogglePin(LED_BOOT_GPIO_Port,LED_BOOT_Pin);
 	 }
 	 else{
 			if(Contol_key_state.key_limit_state == (mask)){
@@ -221,6 +249,7 @@ void GoHome(void){
 				 memset(&Stepper_data,0,sizeof(Stepper_data));
 				 __HAL_TIM_DISABLE(&STEP_TIMER);	
 				 //HAL_GPIO_TogglePin(LED_STATE_GPIO_Port,LED_STATE_Pin);
+				HAL_GPIO_WritePin(LED_BOOT_GPIO_Port,LED_BOOT_Pin,GPIO_PIN_SET);
 				 Stepper_Enable(false);//失能电机			
 			}
 	 }

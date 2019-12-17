@@ -151,7 +151,7 @@ UINT16 APPL_StartInputHandler(UINT16 *pIntMask)
 //	MotorTools_setPWM(2000);
 	memset(&Stepper_data,0,sizeof(Stepper_data));
 	Ethercat_data.cmd.step_setting = 0;
-		STEP_SETTING_Obj7000 = 0;
+		STEP_SETTING_Obj7010 = 0;
 		Stepper_isAutoRun = 0;
 //	__HAL_TIM_ENABLE(&STEP_TIMER);
 	//Ethercat_data.ch.data[0] = settings.robot_id;//先将一个AD通道当作id的输入(测试用)
@@ -175,11 +175,13 @@ UINT16 APPL_StartInputHandler(UINT16 *pIntMask)
 UINT16 APPL_StopInputHandler(void)
 {
 	  Stepper_Enable(false);//失能电机
-	MotorTools_ResetPWM();
+	  MotorTools_ResetPWM();
+	  IO_DeviceTools_Reset();
+	
 	  memset(&Stepper_data,0,sizeof(Stepper_data));
 		Ethercat_data.cmd.step_setting = 0;
-	Stepper_isAutoRun = 0;
-	STEP_SETTING_Obj7000 = 0;//缓冲，否则会自动运行
+	  Stepper_isAutoRun = 0;
+	  STEP_SETTING_Obj7010 = 0;//缓冲，否则会自动运行
 //	__HAL_TIM_DISABLE(&STEP_TIMER);//添加只能走一次step中断
 	
 	Contol_key_state.enable_key_limit = 1;
@@ -341,10 +343,16 @@ void APPL_InputMapping(UINT16* pData)
       {
       /* TxPDO 1 */
       case 0x1A00:
-         *pTmpData++ = MOTOR_MESSAGE_Obj6000;
-			   *pTmpData++ = ERROR_MSG_Obj6010;
-			   *pTmpData++ = AD_CH1_Obj6020;
-			   *pTmpData++ = AD_CH2_Obj6030;
+				 *pTmpData++ = (UINT16)MOTOR_COUNT_Obj6000;//低位
+			   *pTmpData++ = (UINT16)(MOTOR_COUNT_Obj6000 >> 16);//高位
+			
+         *pTmpData++ = MOTOR_MESSAGE_Obj6010;
+			   *pTmpData++ = ERROR_MSG_Obj6020;
+			   *pTmpData++ = MACHINE_PARAM_Obj6030;
+			   *pTmpData++ = LIMIT_STATE_Obj6040;
+			   *pTmpData++ = AD_CH1_Obj6050;
+			   *pTmpData++ = AD_CH2_Obj6060;
+			   *pTmpData++ = AD_CH3_Obj6070;
          break;
       }
    }
@@ -374,26 +382,27 @@ void APPL_OutputMapping(UINT16* pData)
         {
         /* RxPDO 2 */
         case 0x1600:
-					  STEP_SETTING_Obj7000 = SWAPWORD(*pTmpData++);
-				    STEP_FRE_Obj7010 = SWAPWORD(*pTmpData++);
-            MOTOR_DIR_Obj7020 = SWAPWORD(*pTmpData++);
+					  IO_OUTPUT_Obj7000 = SWAPWORD(*pTmpData++);
+					  STEP_SETTING_Obj7010 = SWAPWORD(*pTmpData++);
+				    STEP_FRE_Obj7020 = SWAPWORD(*pTmpData++);
+            MOTOR_DIR_Obj7030 = SWAPWORD(*pTmpData++);
 				
 						//MOTOR1_STEP_Obj7030 = SWAPDWORD(*pTmpData++);
 //				printf("step1=%x",*pTmpData++);//0xaabbccdd中0xccdd
 //				printf("step2=%x",*pTmpData++);//0xaabbccdd中0xaabb
-				    MOTOR1_STEP_Obj7030 = SWAPDWORD(*pTmpData)|(SWAPDWORD(*(pTmpData+1))<<16);
+				    MOTOR1_STEP_Obj7040 = SWAPDWORD(*pTmpData)|(SWAPDWORD(*(pTmpData+1))<<16);
 				    pTmpData+=2;
-						MOTOR2_STEP_Obj7040 = SWAPDWORD(*pTmpData)|(SWAPDWORD(*(pTmpData+1))<<16);
+						MOTOR2_STEP_Obj7050 = SWAPDWORD(*pTmpData)|(SWAPDWORD(*(pTmpData+1))<<16);
 						pTmpData+=2;
-						MOTOR3_STEP_Obj7050 = SWAPDWORD(*pTmpData)|(SWAPDWORD(*(pTmpData+1))<<16);
+						MOTOR3_STEP_Obj7060 = SWAPDWORD(*pTmpData)|(SWAPDWORD(*(pTmpData+1))<<16);
 						pTmpData+=2;
-						MOTOR4_STEP_Obj7060 = SWAPDWORD(*pTmpData)|(SWAPDWORD(*(pTmpData+1))<<16);
+						MOTOR4_STEP_Obj7070 = SWAPDWORD(*pTmpData)|(SWAPDWORD(*(pTmpData+1))<<16);
 						pTmpData+=2;
-						MOTOR5_STEP_Obj7070 = SWAPDWORD(*pTmpData)|(SWAPDWORD(*(pTmpData+1))<<16);
+						MOTOR5_STEP_Obj7080 = SWAPDWORD(*pTmpData)|(SWAPDWORD(*(pTmpData+1))<<16);
 				    pTmpData+=2;
-						MOTOR6_STEP_Obj7080 = SWAPDWORD(*pTmpData)|(SWAPDWORD(*(pTmpData+1))<<16);
+						MOTOR6_STEP_Obj7090 = SWAPDWORD(*pTmpData)|(SWAPDWORD(*(pTmpData+1))<<16);
 						pTmpData+=2;
-						MOTOR7_STEP_Obj7090 = SWAPDWORD(*pTmpData)|(SWAPDWORD(*(pTmpData+1))<<16);
+						MOTOR7_STEP_Obj70a0 = SWAPDWORD(*pTmpData)|(SWAPDWORD(*(pTmpData+1))<<16);
 				    
 //				    printf("step1=%lx\r\n",MOTOR1_STEP_Obj7030);
 //						printf("step2=%lx\r\n",MOTOR2_STEP_Obj7040);
@@ -413,59 +422,110 @@ void APPL_OutputMapping(UINT16* pData)
 
 void APPL_Application(void)
 {
-	Ethercat_data.ch.data[0] = settings.robot_id;//先将一个AD通道当作id的输入(测试用)
 	
-	MOTOR_MESSAGE_Obj6000 = Ethercat_data.ch.motor_MSG;
-	ERROR_MSG_Obj6010 = Ethercat_data.ch.error_MSG;
-	AD_CH1_Obj6020 = Ethercat_data.ch.data[0];
-	AD_CH2_Obj6030 = Ethercat_data.ch.data[1];
+	Ethercat_data.ch.machine_param = settings.robot_id;//传入机器人ID
+	Ethercat_data.ch.limit_state = Contol_key_state.key_limit_state;//传入限位状态
 	
-	Ethercat_data.cmd.step_setting = STEP_SETTING_Obj7000;
-	Ethercat_data.cmd.step_fre = STEP_FRE_Obj7010;
-	Ethercat_data.cmd.dir = MOTOR_DIR_Obj7020;
-	Ethercat_data.cmd.step[AXIS_X] = MOTOR1_STEP_Obj7030;
-	Ethercat_data.cmd.step[AXIS_Y] = MOTOR2_STEP_Obj7040;
-	Ethercat_data.cmd.step[AXIS_Z] = MOTOR3_STEP_Obj7050;
-	Ethercat_data.cmd.step[AXIS_A] = MOTOR4_STEP_Obj7060;
-	Ethercat_data.cmd.step[AXIS_B] = MOTOR5_STEP_Obj7070;
-	Ethercat_data.cmd.step[AXIS_C] = MOTOR6_STEP_Obj7080;
-	Ethercat_data.cmd.step[AXIS_TOOL1] = MOTOR7_STEP_Obj7090;
+	MOTOR_COUNT_Obj6000 = Ethercat_data.ch.motor_Count;
+	MOTOR_MESSAGE_Obj6010 = Ethercat_data.ch.motor_MSG;
+	ERROR_MSG_Obj6020 = Ethercat_data.ch.error_MSG;
+	MACHINE_PARAM_Obj6030 = Ethercat_data.ch.machine_param;
+	LIMIT_STATE_Obj6040 = Ethercat_data.ch.limit_state;
+	AD_CH1_Obj6050 = Ethercat_data.ch.data[0];
+	AD_CH2_Obj6060 = Ethercat_data.ch.data[1];
+	AD_CH3_Obj6070 = Ethercat_data.ch.data[2];
+	
+	Ethercat_data.cmd.io_output = IO_OUTPUT_Obj7000;
+	Ethercat_data.cmd.step_setting = STEP_SETTING_Obj7010;
+	Ethercat_data.cmd.step_fre = STEP_FRE_Obj7020;
+	Ethercat_data.cmd.dir = MOTOR_DIR_Obj7030;
+	Ethercat_data.cmd.step[AXIS_X] = MOTOR1_STEP_Obj7040;
+	Ethercat_data.cmd.step[AXIS_Y] = MOTOR2_STEP_Obj7050;
+	Ethercat_data.cmd.step[AXIS_Z] = MOTOR3_STEP_Obj7060;
+	Ethercat_data.cmd.step[AXIS_A] = MOTOR4_STEP_Obj7070;
+	Ethercat_data.cmd.step[AXIS_B] = MOTOR5_STEP_Obj7080;
+	Ethercat_data.cmd.step[AXIS_C] = MOTOR6_STEP_Obj7090;
+	Ethercat_data.cmd.step[AXIS_TOOL1] = MOTOR7_STEP_Obj70a0;
   
-//	//控制步进电机
-//  Stepper_ControlDir(AXIS_X,Ethercat_data.cmd.dir[0]);
-//	Stepper_ControlStep(AXIS_X,Ethercat_data.cmd.step[0]);
-//	
-//	Stepper_ControlDir(AXIS_Y,Ethercat_data.cmd.dir[1]);
-//	Stepper_ControlStep(AXIS_Y,Ethercat_data.cmd.step[1]);
-//	
-//	Stepper_ControlDir(AXIS_Z,Ethercat_data.cmd.dir[2]);
-//	Stepper_ControlStep(AXIS_Z,Ethercat_data.cmd.step[2]);
-	
-//	memeset(&Stepper_data,0,sizeof(Stepper_data));
+		//调试
+	MOTOR_COUNT_Obj6000 = Stepper_data.step_count;
+	MOTOR_MESSAGE_Obj6010 = Stepper_isAutoRun;				
 
-				
-//	if(Stepper_data.is_AutoRun){
-//		if(Stepper_data.step_count==0){
-//		  Stepper_data.is_AutoRun = 0;
-//		}
-//	}
-	//调试
-	MOTOR_MESSAGE_Obj6000 = Stepper_data.step_count;
-	ERROR_MSG_Obj6010 = Stepper_isAutoRun;
-//	AD_CH1_Obj6020 = MOTOR_TOOL_TIMER.Instance->CCR1;
+  if((Ethercat_data.cmd.step_setting &0xff00)>0){//有等待限位的指令
+		   Stepper_isWaitLimit = 1;
+			 if(Stepper_data.step_count == 0){
+				Stepper_t stepper_param;
+				memset(&stepper_param,0,sizeof(stepper_param));
+			 if(!(Contol_key_state.key_limit_state & (1<<LIMIT_X))){
+				 if(Ethercat_data.cmd.step_setting & (1 << MOTION_WAIT_LIMIT_X)){
+					stepper_param.steps[AXIS_X] = 6000;
+				 }
+			 }
+			 
+			 if(!(Contol_key_state.key_limit_state & (1<<LIMIT_Y))){
+				 if(Ethercat_data.cmd.step_setting & (1 << MOTION_WAIT_LIMIT_Y)){
+					stepper_param.steps[AXIS_Y] = 6000;
+				 }
+			 }
+			 
+			 if(!(Contol_key_state.key_limit_state & (1<<LIMIT_Z))){
+				 if(Ethercat_data.cmd.step_setting & (1 << MOTION_WAIT_LIMIT_Z)){
+					stepper_param.steps[AXIS_Z] = 6000;
+				 }
+			 }
+			 
+			 if(!(Contol_key_state.key_limit_state & (1<<LIMIT_A))){
+				 if(Ethercat_data.cmd.step_setting & (1 << MOTION_WAIT_LIMIT_A)){
+					stepper_param.steps[AXIS_A] = 6000;
+				 }
+			 }
+			 
+			 if(!(Contol_key_state.key_limit_state & (1<<LIMIT_B))){
+				 if(Ethercat_data.cmd.step_setting & (1 << MOTION_WAIT_LIMIT_B)){
+					stepper_param.steps[AXIS_B] = 6000;
+				 }
+			 }
+			 
+			 if(!(Contol_key_state.key_limit_state & (1<<LIMIT_C))){
+				 if(Ethercat_data.cmd.step_setting & (1 << MOTION_WAIT_LIMIT_C)){
+					stepper_param.steps[AXIS_C] = 6000;
+				 }
+			 }
+			 
+				stepper_param.dir_outbits = settings.limit_run_dir;//X,Y方向取反0x3
+			 
+				Stepper_setParam(stepper_param,settings.limit_goHome_speed);//姑且设定速度为1500
+				Stepper_Enable(true);//使能电机
+				Contol_key_state.enable_key_limit = 1;
+			 
+			 Stepper_isAutoRun = 0;
+		 }
+
+     return;//下面就不执行了吧		 
+	}
+	else{
+		if(Stepper_isWaitLimit == 1){
+		   	Contol_key_state.enable_key_limit = 0;
+			  __HAL_TIM_DISABLE(&STEP_TIMER);
+		    memset(&Stepper_data,0,sizeof(Stepper_data));
+			  Stepper_isWaitLimit = 0;
+		}
+	}
 	
   if(Ethercat_data.cmd.step_setting &(1<<MOTION_ENABLE_BIT)){//加一个使能，否则在扫描的时候就会因为初值而运动
 //		printf("step_setting=%x\r\n",Ethercat_data.cmd.step_setting);
 		if(Stepper_isAutoRun){
 		   if(Ethercat_data.cmd.step_setting &(1<<MOTION_AUTORUN_STOP_BIT)){//如果设置手动更新，停止自动更新
 			    Stepper_isAutoRun = 0;
-				 ERROR_MSG_Obj6010 = 2;//直接赋值,防止后面有start变成1，保证有一个脉冲
+				 MOTOR_MESSAGE_Obj6010 = 2;//直接赋值,防止后面有start变成1，保证有一个脉冲
 			 }
 		}
 		
 		//吸盘的处理
 //		MotorTools_setPWM(Ethercat_data.cmd.tools);
 			MotorTools_setPWM(Ethercat_data.cmd.step[AXIS_TOOL1]);
+		//添加一个IO口的输出
+		IO_DeviceTools_setData(Ethercat_data.cmd.io_output);
 		
 	  if(Stepper_isAutoRun==0){ //不是自动运行就更新数据
 			memset(&Stepper_data,0,sizeof(Stepper_data));
@@ -494,27 +554,17 @@ void APPL_Application(void)
 			Stepper_data.steps[AXIS_B] = Ethercat_data.cmd.step[AXIS_B];
 			Stepper_data.steps[AXIS_C] = Ethercat_data.cmd.step[AXIS_C];
 			//方向
-	//		Stepper_data.dir_outbits = 0;	
-	//		if(Ethercat_data.cmd.dir[AXIS_X]>0){
-	//			Stepper_data.dir_outbits |= (1<<AXIS_X);
-	//		}
-	//		if(Ethercat_data.cmd.dir[AXIS_Y]>0){
-	//			Stepper_data.dir_outbits |= (1<<AXIS_Y);
-	//		}	
-	//		if(Ethercat_data.cmd.dir[AXIS_Z]>0){
-	//			Stepper_data.dir_outbits |= (1<<AXIS_Z);
-	//		}
 			Stepper_data.dir_outbits = Ethercat_data.cmd.dir;	
-
-	//    Stepper_data.dir_outbits = Ethercat_data.cmd.dir[AXIS_X] | 
-	//		                           Ethercat_data.cmd.dir[AXIS_Y] | 
-	//															 Ethercat_data.cmd.dir[AXIS_Z];
 		
 	}
 		//设置脉冲延时
+	  if(Ethercat_data.cmd.step_fre < 200){ //限制频率
+		   Ethercat_data.cmd.step_fre = 200;
+		}
 		Step_TimerCount = (uint32_t)(F_TIMER_STEPPER / Ethercat_data.cmd.step_fre);
-		if(Ethercat_data.cmd.step_fre > MAX_STEP_RATE_HZ)
+		if(Ethercat_data.cmd.step_fre > MAX_STEP_RATE_HZ){
 			Step_TimerCount = STEP_TIMER_MIN;//防止太快出现尖锐的响声
+		}
 		
 //		__HAL_TIM_SET_AUTORELOAD(&STEP_TIMER,Step_TimerCount);//0.02ms 最大接收50个脉冲
 //		__HAL_TIM_SET_COMPARE(&STEP_TIMER,STEP_TIMER_CHANNEL,(uint16_t)(Step_TimerCount * 0.75));
@@ -536,6 +586,7 @@ void APPL_Application(void)
 		memset(&Stepper_data,0,sizeof(Stepper_data));
 	  __HAL_TIM_DISABLE(&STEP_TIMER);
 		MotorTools_ResetPWM();
+		IO_DeviceTools_Reset();
 	}	
 	Ethercat_data.cmd.step_setting &= ~(1<<MOTION_ENABLE_BIT);
 

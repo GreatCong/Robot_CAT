@@ -35,11 +35,19 @@
 #define DEFAULT_ROBOT_ID 0x0 //默认的机器人id为0
 #define DEFAULT_LIMIT_RUN_DIR 0x03 //默认的方向设置为3,也就是XY方向取反
 #define DEFAULT_LIMIT_ENABLE_MASK 0x07 //默认XYZ 3个限位
+#define DEFAULT_LIMIT_MODE 0x0 //默认是用限位开关
+#define DEFAULT_LIMIT_GOHOME_SPEED 1500 //默认是限位速度为1500
+#define DEFAULT_LIMIT_ANGLE_X 890 //限位角度X 89.0度
+#define DEFAULT_LIMIT_ANGLE_Y 890 //限位角度Y 89.0度
+#define DEFAULT_LIMIT_ANGLE_Z 890 //限位角度Z 89.0度
 
 typedef struct{
    uint8_t robot_id;//机器人的id
 	 uint8_t limit_run_dir;//在自动归位的时候,设置方向
 	 uint8_t limit_enable_mask;//在自动归位的时候,要使能的限位
+	 uint8_t limit_mode;//选择是限位开关还是角度传感器
+	 uint16_t limit_goHome_speed;//限位归位的时候的速度
+	 uint16_t limit_angle[3];//用MPU6050限位的角度(放大了10倍,0-180)
 }Settings_t;
 
 extern Settings_t settings;

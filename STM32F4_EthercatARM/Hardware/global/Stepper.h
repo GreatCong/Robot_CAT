@@ -33,6 +33,7 @@ extern Stepper_t Stepper_data;
 extern int32_t Sys_position[AXIS_N];
 extern uint8_t Stepper_isAutoRun;
 extern uint32_t Step_TimerCount;
+extern uint8_t Stepper_isWaitLimit;
 
 #define STEP_MAX(a,b) a>b? a:b
 
@@ -49,10 +50,10 @@ extern uint32_t Step_TimerCount;
 #define MOTOR_TOOL_TIMER htim9
 #define MOTOR_TOOL_TIMER_CHANNEL TIM_CHANNEL_1
 
-#define F_TIMER_STEPPER             21000000UL //24Mz
-#define MAX_STEP_RATE_HZ 50000 // Hz
+#define F_TIMER_STEPPER             2100000UL //2.1MhZ
+#define MAX_STEP_RATE_HZ 50000 // 50KHz
 #define STEP_TIMER_MIN          (uint16_t)(F_TIMER_STEPPER / MAX_STEP_RATE_HZ)
-#define TEST_STEP_RATE_HZ 1000 // 1Hz
+#define TEST_STEP_RATE_HZ 1000 // 1kHz
 #define STEP_TIMER_TEST          (uint16_t)(F_TIMER_STEPPER / TEST_STEP_RATE_HZ)
 
 //为了兼容标准库
